@@ -33,7 +33,7 @@ export default function SignupPage() {
 
     if (data.user) {
       // Create company
-      const { error: companyError } = await supabase
+      const { data: companyData, error: companyError } = await supabase
         .from("companies")
         .insert({ name: companyName, plan: "starter", seats_used: 1 })
         .select()
@@ -46,9 +46,15 @@ export default function SignupPage() {
       }
 
       // Link user to company
-      await supabase
+      const { error: userError } = await supabase
         .from("users")
-        .insert({ id: data.user.id, email, company_id: data.user.id, role: "admin" });
+        .insert({ id: data.user!.id, email, company_id: companyData.id, role: "admin" });
+
+      if (userError) {
+        setError(userError.message);
+        setLoading(false);
+        return;
+      }
     }
 
     setDone(true);
